@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trading Meta Ai</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #e0e0e0;
+      font-family: 'Orbitron', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      padding: 15px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #00f57c;
+      position: relative;
+    }
+
+    .btn.logout {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      background: #999;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      font-family: 'Orbitron', sans-serif;
+      cursor: pointer;
+    }
+
+    #loginPage, #appPage {
+      display: none;
+      padding: 20px;
+    }
+
+    #chart {
+      height: 400px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      background: #00f57c;
+      color: black;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .btn.sell {
+      background: #ff3b3b;
+      margin-left: 10px;
+    }
+
+    .pair-select select {
+      padding: 10px;
+      background: #222;
+      color: white;
+      border: 1px solid #555;
+    }
+
+    .saldo, #history {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 10px;
+      background: #000;
+      border-top: 1px solid #333;
+      color: #aaa;
+      font-size: 12px;
+      margin-top: 30px;
+    }
+
+    input[type="text"], input[type="number"] {
+      padding: 10px;
+      width: 200px;
+      margin-right: 10px;
+      background: #222;
+      color: white;
+      border: 1px solid #444;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    #log p {
+      margin: 5px 0;
+    }
+
+    h2, h3 {
+      color: #00f57c;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    🚀 TRADING META Ai
+    <button class="btn logout" onclick="logout()">Logout</button>
+  </header>
+
+  <div id="loginPage">
+    <h2>Masuk ke Trading Meta Ai</h2>
+    <input type="text" id="usernameInput" placeholder="Masukkan Username" />
+    <button class="btn" onclick="login()">Masuk</button>
+  </div>
+
+  <div id="appPage">
+    <div id="chart"></div>
+
+    <div class="panel">
+      <div class="saldo">👤 <span id="username"></span> | 💰 Saldo: $<span id="balance">10000</span></div>
+
+      <div class="pair-select">
+        Pair:
+        <select id="pairSelect">
+          <option value="BINANCE:BTCUSDT">BTC/USDT</option>
+          <option value="BINANCE:ETHUSDT">ETH/USDT</option>
+          <option value="OANDA:EURUSD">EUR/USD</option>
+        </select>
+      </div>
+
+      <div class="action-panel">
+        Jumlah ($): <input type="number" id="amount" value="100" />
+        <button class="btn" onclick="buy()">BUY</button>
+        <button class="btn sell" onclick="sell()">SELL</button>
+      </div>
+
+      <div id="log"></div>
+
+      <h3>📜 Riwayat Transaksi</h3>
+      <div id="history"></div>
+    </div>
+  </div>
+
+  <footer>© 2025 Trading Meta Ai - Powered by XYZZ</footer>
+
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script>
+    let userData = {};
+    let currentUser = "";
+
+    function saveData() {
+      localStorage.setItem("tradingUsers", JSON.stringify(userData));
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem("tradingUsers");
+      if (saved) userData = JSON.parse(saved);
+    }
+
+    function login() {
+      const name = document.getElementById("usernameInput").value.trim();
+      if (!name) return alert("Masukkan username!");
+
+      currentUser = name;
+      if (!userData[currentUser]) {
+        userData[currentUser] = {
+          balance: 10000,
+          history: []
+        };
+      }
+      saveData();
+      showApp();
+    }
+
+    function logout() {
+      currentUser = "";
+      document.getElementById("appPage").style.display = "none";
+      document.getElementById("loginPage").style.display = "block";
+    }
+
+    function showApp() {
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("appPage").style.display = "block";
+      document.getElementById("username").innerText = currentUser;
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      document.getElementById("balance").innerText = userData[currentUser].balance.toFixed(2);
+      const h = userData[currentUser].history;
+      document.getElementById("history").innerHTML = h.length === 0 ? "<p>Belum ada transaksi.</p>" :
+        h.map(x => `<p>${x}</p>`).reverse().join("");
+    }
+
+    function log(text) {
+      const el = document.getElementById("log");
+      el.innerHTML = `<p>${text}</p>` + el.innerHTML;
+    }
+
+    function buy() {
+      const amount = parseFloat(document.getElementById("amount").value);
+      if (userData[currentUser].balance < amount) return alert("Saldo tidak cukup!");
+      userData[currentUser].balance -= amount;
+      const pair = document.getElementById("pairSelect").value;
+      const text = `✅ BUY ${pair} sebesar $${amount}`;
+      userData[currentUser].history.push(text);
+      updateDisplay();
+      saveData();
+      log(text);
+    }
+
+    function sell() {
+      const amount = parseFloat(document.getElementById("amount").value);
+      userData[currentUser].balance += amount;
+      const pair = document.getElementById("pairSelect").value;
+      const text = `🔻 SELL ${pair} sebesar $${amount}`;
+      userData[currentUser].history.push(text);
+      updateDisplay();
+      saveData();
+      log(text);
+    }
+
+    loadData();
+    logout(); // default to login screen
+
+    const widget = new TradingView.widget({
+      container_id: "chart",
+      width: "100%",
+      height: 400,
+      symbol: "BINANCE:BTCUSDT",
+      interval: "15",
+      timezone: "Etc/UTC",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      toolbar_bg: "#111",
+      enable_publishing: false,
+      hide_side_toolbar: true,
+      allow_symbol_change: true,
+    });
+
+    document.getElementById('pairSelect').addEventListener('change', function () {
+      const pair = this.value;
+      widget.setSymbol(pair);
+    });
+  </script>
+</body>
+</html>
